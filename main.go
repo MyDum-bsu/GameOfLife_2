@@ -1,14 +1,10 @@
 package main
 
 import (
-	"GameOfLife/graphics"
 	"GameOfLife/life"
-	"golang.org/x/image/colornames"
-	"time"
-
 	"github.com/faiface/pixel"
-	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
+	"time"
 )
 
 const (
@@ -19,7 +15,7 @@ const (
 
 func run() {
 	cfg := pixelgl.WindowConfig{
-		Title:  "Conway's Game of Life",
+		Title:  "Conway's Game of Universe",
 		Bounds: pixel.R(0, 0, width, height),
 		VSync:  true,
 	}
@@ -30,14 +26,14 @@ func run() {
 	}
 	win.SetMonitor(pixelgl.PrimaryMonitor())
 
-	imd := imdraw.New(nil)
-	l := life.NewLife(height/cellSize, width/cellSize)
-	l.Seed()
+	l := life.NewLife(win, pixel.RGB(1, 0, 1), 3, width/cellSize, height/cellSize)
+
+	fps := time.Tick(time.Second / 30)
 	for !win.Closed() {
-		win.Clear(colornames.Black)
-		graphics.Render(win, imd, l, cellSize)
-		win.Update()
-		time.Sleep(time.Second / 24)
+		select {
+		case <-fps:
+			l.Render()
+		}
 	}
 }
 
