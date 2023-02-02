@@ -10,7 +10,7 @@ import (
 const (
 	width    = 1920
 	height   = 1080
-	cellSize = 3
+	cellSize = 5
 )
 
 func run() {
@@ -24,16 +24,22 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
+	win.SetCursorVisible(false)
 	win.SetMonitor(pixelgl.PrimaryMonitor())
+	aliveColor := pixel.RGB(1, 0, 0)
+	deadColor := pixel.RGB(0, 0, 0)
+	l := life.NewLife(win, aliveColor, deadColor, cellSize, width/cellSize, height/cellSize)
 
-	l := life.NewLife(win, pixel.RGB(1, 0, 1), 3, width/cellSize, height/cellSize)
-
-	fps := time.Tick(time.Second / 30)
+	paused := false
 	for !win.Closed() {
-		select {
-		case <-fps:
+		if win.JustPressed(pixelgl.KeySpace) {
+			paused = !paused
+		}
+		if !paused {
 			l.Render()
 		}
+		win.Update()
+		time.Sleep(time.Second / 120)
 	}
 }
 
