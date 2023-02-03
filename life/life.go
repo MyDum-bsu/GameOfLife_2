@@ -1,6 +1,7 @@
 package life
 
 import (
+	"GameOfLife/settings/slider"
 	"GameOfLife/universe"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -14,12 +15,14 @@ type Life struct {
 	aliveColor, deadColor pixel.RGBA
 	cellSize              int
 	u                     *universe.Universe
+	s                     *slider.Slider
 }
 
 func NewLife(win *pixelgl.Window, aColor, dColor pixel.RGBA, cellSize, width, height int) *Life {
 	u := universe.NewUniverse(width, height)
 	u.Seed()
 	imd := imdraw.New(nil)
+	s := slider.NewSlider(imd, 100, 100, 7, 102, 20, 0, 100, pixel.RGB(1, 1, 1), pixel.RGB(0, 0, 1))
 	return &Life{
 		win:        win,
 		imd:        imd,
@@ -27,6 +30,7 @@ func NewLife(win *pixelgl.Window, aColor, dColor pixel.RGBA, cellSize, width, he
 		deadColor:  dColor,
 		cellSize:   cellSize,
 		u:          u,
+		s:          s,
 	}
 }
 
@@ -40,6 +44,15 @@ func (l *Life) Render() {
 			}
 		}
 	}
+
+	l.s.Draw()
+	if l.win.Pressed(pixelgl.KeyRight) {
+		l.s.UpdateValue(l.s.GetValue() + 2)
+	}
+	if l.win.Pressed(pixelgl.KeyLeft) {
+		l.s.UpdateValue(l.s.GetValue() - 2)
+	}
+
 	l.imd.Draw(l.win)
 	l.u.Step()
 }
