@@ -2,7 +2,9 @@ package main
 
 import (
 	"GameOfLife/life"
+	settings2 "GameOfLife/settings"
 	"github.com/faiface/pixel"
+	"github.com/faiface/pixel/imdraw"
 	"github.com/faiface/pixel/pixelgl"
 	"time"
 )
@@ -10,7 +12,7 @@ import (
 const (
 	width    = 1920
 	height   = 1080
-	cellSize = 5
+	cellSize = 10
 )
 
 func run() {
@@ -24,11 +26,12 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	//win.SetCursorVisible(false)
 	win.SetMonitor(pixelgl.PrimaryMonitor())
 	aliveColor := pixel.RGB(1, 0, 0)
 	deadColor := pixel.RGB(0, 0, 0)
-	l := life.NewLife(win, aliveColor, deadColor, cellSize, width/cellSize, height/cellSize)
+	imd := imdraw.New(nil)
+	l := life.NewLife(win, imd, aliveColor, deadColor, cellSize)
+	s := settings2.NewSettings(win)
 
 	paused := false
 	settings := false
@@ -36,6 +39,7 @@ func run() {
 		if win.JustPressed(pixelgl.KeyEscape) {
 			settings = !settings
 			paused = !paused
+			s.OpenSettings(imd)
 		}
 		l.HandleInput()
 		if win.JustPressed(pixelgl.KeySpace) {
@@ -45,8 +49,11 @@ func run() {
 			l.Erase()
 		}
 		if !paused {
+			win.Clear(deadColor)
+			imd.Clear()
 			l.Render()
 		}
+		imd.Draw(win)
 		win.Update()
 		time.Sleep(time.Second / 120)
 	}

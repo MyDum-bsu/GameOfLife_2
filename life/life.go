@@ -1,7 +1,6 @@
 package life
 
 import (
-	"GameOfLife/settings/slider"
 	"GameOfLife/universe"
 	"github.com/faiface/pixel"
 	"github.com/faiface/pixel/imdraw"
@@ -15,14 +14,13 @@ type Life struct {
 	aliveColor, deadColor pixel.RGBA
 	cellSize              int
 	u                     *universe.Universe
-	s                     *slider.Slider
 }
 
-func NewLife(win *pixelgl.Window, aColor, dColor pixel.RGBA, cellSize, width, height int) *Life {
+func NewLife(win *pixelgl.Window, imd *imdraw.IMDraw, aColor, dColor pixel.RGBA, cellSize int) *Life {
+	width := int(win.Bounds().W()) / cellSize
+	height := int(win.Bounds().H()) / cellSize
 	u := universe.NewUniverse(width, height)
 	u.Seed()
-	imd := imdraw.New(nil)
-	s := slider.NewSlider(imd, 100, 100, 7, 102, 20, 0, 100, pixel.RGB(1, 1, 1), pixel.RGB(0, 0, 1))
 	return &Life{
 		win:        win,
 		imd:        imd,
@@ -30,35 +28,22 @@ func NewLife(win *pixelgl.Window, aColor, dColor pixel.RGBA, cellSize, width, he
 		deadColor:  dColor,
 		cellSize:   cellSize,
 		u:          u,
-		s:          s,
 	}
 }
 
 func (l *Life) Render() {
-	l.win.Clear(l.deadColor)
-	l.imd.Clear()
 	for i := 0; i < l.u.Width(); i++ {
 		for j := 0; j < l.u.Height(); j++ {
 			if l.u.IsAlive(i, j) {
-				l.drawRect(i, j)
+				l.drawRect(i, j, l.aliveColor)
 			}
 		}
 	}
-
-	l.s.Draw()
-	if l.win.Pressed(pixelgl.KeyRight) {
-		l.s.UpdateValue(l.s.GetValue() + 2)
-	}
-	if l.win.Pressed(pixelgl.KeyLeft) {
-		l.s.UpdateValue(l.s.GetValue() - 2)
-	}
-
-	l.imd.Draw(l.win)
 	l.u.Step()
 }
 
-func (l *Life) drawRect(i, j int) {
-	l.imd.Color = l.aliveColor
+func (l *Life) drawRect(i, j int, color pixel.RGBA) {
+	l.imd.Color = color
 	l.imd.Push(pixel.V(float64(i*l.cellSize+1), float64(j*l.cellSize+1)))
 	l.imd.Push(pixel.V(float64((i+1)*l.cellSize-1), float64((j+1)*l.cellSize-1)))
 	l.imd.Rectangle(0)
@@ -69,14 +54,17 @@ func (l *Life) Erase() {
 }
 
 func (l *Life) HandleInput() {
-	if l.win.JustPressed(pixelgl.MouseButtonLeft) {
-		pos := l.win.MousePosition()
-		x := int(math.Floor(pos.X / float64(l.cellSize)))
-		y := int(math.Floor(pos.Y / float64(l.cellSize)))
-		if l.validateMousePosition(x, y) {
+	pos := l.win.MousePosition()
+	x := int(math.Floor(pos.X / float64(l.cellSize)))
+	y := int(math.Floor(pos.Y / float64(l.cellSize)))
+	if l.validateMousePosition(x, y) {
+		if l.win.Pressed(pixelgl.MouseButtonLeft) {
 			l.u.Alive(x, y)
-			l.drawRect(x, y)
-			l.imd.Draw(l.win)
+			l.drawRect(x, y, l.aliveColor)
+		}
+		if l.win.Pressed(pixelgl.MouseButtonRight) {
+			l.u.Dead(x, y)
+			l.drawRect(x, y, l.deadColor)
 		}
 	}
 }

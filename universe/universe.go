@@ -65,6 +65,10 @@ func (u *Universe) Alive(x, y int) {
 	u.board[x][y] = true
 }
 
+func (u *Universe) Dead(x, y int) {
+	u.board[x][y] = false
+}
+
 func (u *Universe) Width() int {
 	return u.w
 }
