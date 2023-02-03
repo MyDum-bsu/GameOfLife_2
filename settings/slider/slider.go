@@ -17,9 +17,9 @@ type Slider struct {
 	maxVal          float64
 }
 
-func NewSlider(x, y, radius, length, baseV, minV, maxV float64, backgroundColor, circleColor pixel.RGBA) *Slider {
+func NewSlider(position pixel.Vec, radius, length, baseV, minV, maxV float64, backgroundColor, circleColor pixel.RGBA) *Slider {
 	return &Slider{
-		position:        pixel.V(x, y),
+		position:        position,
 		backgroundColor: backgroundColor,
 		circleColor:     circleColor,
 		radius:          radius,
