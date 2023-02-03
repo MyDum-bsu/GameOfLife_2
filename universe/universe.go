@@ -7,28 +7,28 @@ type Universe struct {
 	w, h  int
 }
 
-func NewUniverse(height, width int) *Universe {
-	board := make([][]bool, height)
+func NewUniverse(width, height int) *Universe {
+	board := make([][]bool, width)
 	for i := range board {
-		board[i] = make([]bool, width)
+		board[i] = make([]bool, height)
 	}
-	return &Universe{board: board, h: height, w: width}
+	return &Universe{board: board, w: width, h: height}
 }
 
 func (u *Universe) Seed() {
 	for i := 0; i < (u.h * u.w / 4); i++ {
-		u.board[rand.Intn(u.h)][rand.Intn(u.w)] = true
+		u.board[rand.Intn(u.w)][rand.Intn(u.h)] = true
 	}
 }
 
 func (u *Universe) Step() {
-	newBoard := make([][]bool, u.h)
+	newBoard := make([][]bool, u.w)
 	for i := range newBoard {
-		newBoard[i] = make([]bool, u.w)
+		newBoard[i] = make([]bool, u.h)
 	}
 
-	for i := 0; i < u.h; i++ {
-		for j := 0; j < u.w; j++ {
+	for i := 0; i < u.w; i++ {
+		for j := 0; j < u.h; j++ {
 			onCount := u.countOnNeighbors(i, j)
 			if u.board[i][j] && (onCount == 2 || onCount == 3) {
 				newBoard[i][j] = true
@@ -48,7 +48,7 @@ func (u *Universe) countOnNeighbors(x, y int) int {
 			if dx == 0 && dy == 0 {
 				continue
 			}
-			xx, yy := (x+dx+u.h)%u.h, (y+dy+u.w)%u.w
+			xx, yy := (x+dx+u.w)%u.w, (y+dy+u.h)%u.h
 			if u.board[xx][yy] {
 				onCount++
 			}
@@ -61,6 +61,10 @@ func (u *Universe) IsAlive(x, y int) bool {
 	return u.board[x][y]
 }
 
+func (u *Universe) Alive(x, y int) {
+	u.board[x][y] = true
+}
+
 func (u *Universe) Width() int {
 	return u.w
 }
@@ -69,22 +73,10 @@ func (u *Universe) Height() int {
 	return u.h
 }
 
-//func (u *Universe) State() [][]bool {
-//	return u.board
-//}
-
-func (u *Universe) State() []byte {
-	state := make([]byte, u.Height()*u.Width())
-	index := 0
-	for i := 0; i < u.Height(); i++ {
-		for j := 0; j < u.Width(); j++ {
-			if u.IsAlive(i, j) {
-				state[index] = 1
-			} else {
-				state[index] = 0
-			}
-			index++
+func (u *Universe) Erase() {
+	for i := range u.board {
+		for j := range u.board[i] {
+			u.board[i][j] = false
 		}
 	}
-	return state
 }

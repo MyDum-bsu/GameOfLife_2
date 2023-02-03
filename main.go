@@ -24,16 +24,25 @@ func run() {
 	if err != nil {
 		panic(err)
 	}
-	win.SetCursorVisible(false)
+	//win.SetCursorVisible(false)
 	win.SetMonitor(pixelgl.PrimaryMonitor())
 	aliveColor := pixel.RGB(1, 0, 0)
 	deadColor := pixel.RGB(0, 0, 0)
 	l := life.NewLife(win, aliveColor, deadColor, cellSize, width/cellSize, height/cellSize)
 
 	paused := false
+	settings := false
 	for !win.Closed() {
+		if win.JustPressed(pixelgl.KeyEscape) {
+			settings = !settings
+			paused = !paused
+		}
+		l.HandleInput()
 		if win.JustPressed(pixelgl.KeySpace) {
 			paused = !paused
+		}
+		if win.JustPressed(pixelgl.KeyE) {
+			l.Erase()
 		}
 		if !paused {
 			l.Render()
