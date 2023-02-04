@@ -31,6 +31,46 @@ func NewLife(win *pixelgl.Window, imd *imdraw.IMDraw, aColor, dColor pixel.RGBA,
 	}
 }
 
+//func (l *Life) Render() {
+//	type chunk struct {
+//		x, y int
+//		imd  *imdraw.IMDraw
+//	}
+//
+//	const chunkSize = 10
+//
+//	chunks := make(chan chunk)
+//	done := make(chan bool)
+//
+//	for i := 0; i < l.u.Width(); i += chunkSize {
+//		for j := 0; j < l.u.Height(); j += chunkSize {
+//			go func(x, y int) {
+//				imd := imdraw.New(nil)
+//				for i := x; i < x+chunkSize && i < l.u.Width(); i++ {
+//					for j := y; j < y+chunkSize && j < l.u.Height(); j++ {
+//						if l.u.IsAlive(i, j) {
+//							l.drawRect(i, j, l.aliveColor)
+//						}
+//					}
+//				}
+//				chunks <- chunk{x, y, imd}
+//			}(i, j)
+//		}
+//	}
+//
+//	go func() {
+//		for i := 0; i < (l.u.Width()*l.u.Height())/(chunkSize*chunkSize); i++ {
+//			c := <-chunks
+//			c.imd.Draw(l.win)
+//		}
+//		done <- true
+//	}()
+//
+//	l.u.Step()
+//
+//	<-done
+//}
+
 func (l *Life) Render() {
 	for i := 0; i < l.u.Width(); i++ {
 		for j := 0; j < l.u.Height(); j++ {
@@ -39,6 +79,10 @@ func (l *Life) Render() {
 			}
 		}
 	}
+	l.imd.Draw(l.win)
+}
+
+func (l *Life) Step() {
 	l.u.Step()
 }
 
@@ -51,6 +95,7 @@ func (l *Life) drawRect(i, j int, color pixel.RGBA) {
 
 func (l *Life) Erase() {
 	l.u.Erase()
+	l.Render()
 }
 
 func (l *Life) HandleInput() {

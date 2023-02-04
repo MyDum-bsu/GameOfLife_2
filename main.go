@@ -9,10 +9,15 @@ import (
 	"time"
 )
 
+var (
+	paused   = false
+	settings = false
+)
+
 const (
 	width    = 1920
 	height   = 1080
-	cellSize = 3
+	cellSize = 5
 )
 
 func run() {
@@ -32,38 +37,41 @@ func run() {
 	deadColor := pixel.RGB(0, 0, 0)
 	imd := imdraw.New(nil)
 	l := life.NewLife(win, imd, aliveColor, deadColor, cellSize)
-	s := settings2.NewSettings(pixel.V(width/2, height/2))
-
-	//basicAtlas := text.NewAtlas(basicfont.Face7x13, text.ASCII)
-	//basicTxt := text.New(pixel.V(500, 700), basicAtlas)
-	//basicTxt.Color = pixel.RGBA{R: 1, G: 1, B: 1, A: 1}
-	//fmt.Fprintln(basicTxt, "Hello, World!")
-
-	paused := false
-	settings := false
+	s := settings2.NewSettings(win, imd, pixel.V(width/2, height/2))
 
 	for !win.Closed() {
-		if win.JustPressed(pixelgl.KeyEscape) {
-			settings = !settings
-			paused = !paused
-			s.OpenSettings(imd)
-		}
 		l.HandleInput()
-		if win.JustPressed(pixelgl.KeySpace) {
-			paused = !paused
-		}
-		if win.JustPressed(pixelgl.KeyE) {
-			l.Erase()
-		}
-		if !paused {
+		if settings {
+			s.OpenSettings()
+			s.Listen()
+		} else if !paused {
 			win.Clear(deadColor)
 			imd.Clear()
 			l.Render()
+			l.Step()
+		} else {
+			imd.Draw(win)
 		}
-		//basicTxt.Draw(win, pixel.IM.Scaled(basicTxt.Orig, 4))
-		imd.Draw(win)
+		checkPressedButtons(win, l, s)
 		win.Update()
 		time.Sleep(time.Second / 120)
+	}
+}
+
+func checkPressedButtons(win *pixelgl.Window, l *life.Life, s *settings2.Settings) {
+	if win.JustPressed(pixelgl.KeyEscape) {
+		settings = !settings
+		paused = !paused
+		s.OpenSettings()
+	}
+
+	if win.JustPressed(pixelgl.KeySpace) {
+		if !settings {
+			paused = !paused
+		}
+	}
+	if win.JustPressed(pixelgl.KeyE) {
+		l.Erase()
 	}
 }
 

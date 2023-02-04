@@ -38,11 +38,12 @@ func (s *Slider) Draw(imd *imdraw.IMDraw) {
 	imd.Line(2)
 
 	imd.Color = s.circleColor
-	imd.Push(s.position.Add(pixel.V(s.currentValue, 0)))
+	x := s.currentValue / (s.maxVal - s.minVal) * s.length
+	imd.Push(s.position.Add(pixel.V(x, 0)))
 	imd.Circle(s.radius, 0)
 }
 
-func (s *Slider) GetValue() float64 {
+func (s *Slider) Value() float64 {
 	return s.currentValue
 }
 
@@ -50,4 +51,20 @@ func (s *Slider) UpdateValue(value float64) {
 	if value >= s.minVal && value <= s.maxVal {
 		s.currentValue = value
 	}
+}
+
+func (s *Slider) Length() float64 {
+	return s.length
+}
+
+func (s *Slider) MinValue() float64 {
+	return s.minVal
+}
+
+func (s *Slider) MaxValue() float64 {
+	return s.maxVal
+}
+
+func (s *Slider) Position() pixel.Vec {
+	return s.position
 }
