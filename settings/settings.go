@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"GameOfLife/life"
 	"GameOfLife/settings/slider"
 	"fmt"
 	"github.com/faiface/pixel"
@@ -13,39 +14,40 @@ import (
 )
 
 var (
-	atlas = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	atlas      = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	resolution *text.Text
+	sizeSlider *slider.Slider
 )
 
 type Settings struct {
-	win        *pixelgl.Window
-	imd        *imdraw.IMDraw
-	sizeSlider *slider.Slider
-	center     pixel.Vec
+	win    *pixelgl.Window
+	imd    *imdraw.IMDraw
+	center pixel.Vec
 }
 
 func NewSettings(win *pixelgl.Window, imd *imdraw.IMDraw, center pixel.Vec) *Settings {
-	sizeSlider := slider.NewSlider(
+	sizeSlider = slider.NewSlider(
 		center.Sub(pixel.V(140, -150)),
-		8, 130, 5, 2, 100,
+		8, 130, 5, 3, 300,
 		pixel.RGB(0, 0, 0),
 		pixel.RGB(1, 0, 0))
 	return &Settings{
-		win:        win,
-		imd:        imd,
-		sizeSlider: sizeSlider,
-		center:     center,
+		win:    win,
+		imd:    imd,
+		center: center,
 	}
 }
 
 func (s *Settings) OpenSettings() {
+
 	s.roundRect(400, 400, 60, 60)
-	s.sizeSlider.Draw(s.imd)
+	sizeSlider.Draw(s.imd)
 	s.imd.Draw(s.win)
 	s.createText()
 }
 
 func (s *Settings) createText() {
-	resolution := text.New(pixel.V(s.center.X, s.center.Y+145), atlas)
+	resolution = text.New(pixel.V(s.center.X, s.center.Y+145), atlas)
 	resolution.Color = colornames.Black
 
 	_, err := fmt.Fprint(resolution, "resolution")
@@ -91,12 +93,18 @@ func (s *Settings) roundRect(width, height, rx, ry float64) {
 	s.imd.Rectangle(0)
 }
 
-func (s *Settings) Listen() {
+func (s *Settings) Listen(l *life.Life) {
+
 	if s.win.Pressed(pixelgl.MouseButtonLeft) {
 		mousePos := s.win.MousePosition()
-		if math.Abs(mousePos.Y-s.sizeSlider.Position().Y) < 20 {
-			var sizeValue = (s.win.MousePosition().X - s.sizeSlider.Position().X) / s.sizeSlider.Length() * (s.sizeSlider.MaxValue() - s.sizeSlider.MinValue())
-			s.sizeSlider.UpdateValue(sizeValue)
+		if math.Abs(mousePos.Y-sizeSlider.Position().Y) < 20 && ((mousePos.X-sizeSlider.Position().X < sizeSlider.Length()) || (sizeSlider.Position().X-mousePos.X > 0)) {
+			var sizeValue = (s.win.MousePosition().X - sizeSlider.Position().X) / sizeSlider.Length() * (sizeSlider.MaxValue() - sizeSlider.MinValue())
+			if sizeValue >= sizeSlider.MinValue() && sizeValue <= sizeSlider.MaxValue() {
+				sizeSlider.UpdateValue(sizeValue)
+				l.SetCellSize(int(sizeValue))
+				l.Render()
+				s.OpenSettings()
+			}
 		}
 	}
 }

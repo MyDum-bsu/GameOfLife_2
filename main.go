@@ -17,7 +17,7 @@ var (
 const (
 	width    = 1920
 	height   = 1080
-	cellSize = 5
+	cellSize = 4
 )
 
 func run() {
@@ -33,7 +33,7 @@ func run() {
 	}
 	win.SetMonitor(pixelgl.PrimaryMonitor())
 
-	aliveColor := pixel.RGB(1, 0, 0)
+	aliveColor := pixel.RGB(0, 1, 0)
 	deadColor := pixel.RGB(0, 0, 0)
 	imd := imdraw.New(nil)
 	l := life.NewLife(win, imd, aliveColor, deadColor, cellSize)
@@ -42,11 +42,9 @@ func run() {
 	for !win.Closed() {
 		l.HandleInput()
 		if settings {
-			s.OpenSettings()
-			s.Listen()
+			//s.OpenSettings()
+			s.Listen(l)
 		} else if !paused {
-			win.Clear(deadColor)
-			imd.Clear()
 			l.Render()
 			l.Step()
 		} else {

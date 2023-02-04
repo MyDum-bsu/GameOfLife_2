@@ -31,47 +31,9 @@ func NewLife(win *pixelgl.Window, imd *imdraw.IMDraw, aColor, dColor pixel.RGBA,
 	}
 }
 
-//func (l *Life) Render() {
-//	type chunk struct {
-//		x, y int
-//		imd  *imdraw.IMDraw
-//	}
-//
-//	const chunkSize = 10
-//
-//	chunks := make(chan chunk)
-//	done := make(chan bool)
-//
-//	for i := 0; i < l.u.Width(); i += chunkSize {
-//		for j := 0; j < l.u.Height(); j += chunkSize {
-//			go func(x, y int) {
-//				imd := imdraw.New(nil)
-//				for i := x; i < x+chunkSize && i < l.u.Width(); i++ {
-//					for j := y; j < y+chunkSize && j < l.u.Height(); j++ {
-//						if l.u.IsAlive(i, j) {
-//							l.drawRect(i, j, l.aliveColor)
-//						}
-//					}
-//				}
-//				chunks <- chunk{x, y, imd}
-//			}(i, j)
-//		}
-//	}
-//
-//	go func() {
-//		for i := 0; i < (l.u.Width()*l.u.Height())/(chunkSize*chunkSize); i++ {
-//			c := <-chunks
-//			c.imd.Draw(l.win)
-//		}
-//		done <- true
-//	}()
-//
-//	l.u.Step()
-//
-//	<-done
-//}
-
 func (l *Life) Render() {
+	l.win.Clear(l.deadColor)
+	l.imd.Clear()
 	for i := 0; i < l.u.Width(); i++ {
 		for j := 0; j < l.u.Height(); j++ {
 			if l.u.IsAlive(i, j) {
@@ -95,7 +57,6 @@ func (l *Life) drawRect(i, j int, color pixel.RGBA) {
 
 func (l *Life) Erase() {
 	l.u.Erase()
-	l.Render()
 }
 
 func (l *Life) HandleInput() {
@@ -116,4 +77,16 @@ func (l *Life) HandleInput() {
 
 func (l *Life) validateMousePosition(x, y int) bool {
 	return x >= 0 && y >= 0 && x < l.u.Width() && y < l.u.Height()
+}
+
+func (l *Life) Seed() {
+	l.u.Seed()
+}
+
+func (l *Life) SetCellSize(size int) {
+	l.cellSize = size
+	width := int(l.win.Bounds().W()) / size
+	height := int(l.win.Bounds().H()) / size
+	l.u = universe.NewUniverse(width, height)
+	l.u.Seed()
 }
