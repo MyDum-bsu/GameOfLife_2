@@ -14,9 +14,13 @@ import (
 )
 
 var (
-	atlas      = text.NewAtlas(basicfont.Face7x13, text.ASCII)
-	resolution *text.Text
-	sizeSlider *slider.Slider
+	atlas            = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	txt              *text.Text
+	sizeSlider       *slider.Slider
+	densitySlider    *slider.Slider
+	redColorSlider   *slider.Slider
+	greenColorSlider *slider.Slider
+	blueColorSlider  *slider.Slider
 )
 
 type Settings struct {
@@ -26,11 +30,17 @@ type Settings struct {
 }
 
 func NewSettings(win *pixelgl.Window, imd *imdraw.IMDraw, center pixel.Vec) *Settings {
-	sizeSlider = slider.NewSlider(
-		center.Sub(pixel.V(140, -150)),
-		8, 130, 5, 3, 300,
-		pixel.RGB(0, 0, 0),
-		pixel.RGB(1, 0, 0))
+	baseVec := center.Sub(pixel.V(140, -150))
+	deltaVec := pixel.V(0, 40)
+	var r float64 = 8
+	var l float64 = 130
+	lineC := pixel.RGB(0, 0, 0)
+	circleC := pixel.RGB(1, 0, 0)
+	sizeSlider = slider.NewSlider(baseVec, r, l, 5, 3, 300, lineC, circleC)
+	densitySlider = slider.NewSlider(baseVec.Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
+	redColorSlider = slider.NewSlider(densitySlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
+	greenColorSlider = slider.NewSlider(redColorSlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
+	blueColorSlider = slider.NewSlider(greenColorSlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
 	return &Settings{
 		win:    win,
 		imd:    imd,
@@ -39,25 +49,25 @@ func NewSettings(win *pixelgl.Window, imd *imdraw.IMDraw, center pixel.Vec) *Set
 }
 
 func (s *Settings) OpenSettings() {
-
-	s.roundRect(400, 400, 60, 60)
-	sizeSlider.Draw(s.imd)
+	s.drawRoundRect(400, 400, 60, 60)
+	s.drawSliders()
 	s.imd.Draw(s.win)
-	s.createText()
+	s.drawText()
 }
 
-func (s *Settings) createText() {
-	resolution = text.New(pixel.V(s.center.X, s.center.Y+145), atlas)
-	resolution.Color = colornames.Black
-
-	_, err := fmt.Fprint(resolution, "resolution")
-	if err != nil {
-		return
-	}
-	resolution.Draw(s.win, pixel.IM.Scaled(resolution.Orig, 2))
+func (s *Settings) drawText() {
+	txt = text.New(pixel.V(s.center.X, s.center.Y+145), atlas)
+	txt.Color = colornames.Black
+	txt.LineHeight = 20
+	fmt.Fprintln(txt, "resolution")
+	fmt.Fprintln(txt, "density")
+	fmt.Fprintln(txt, "red")
+	fmt.Fprintln(txt, "green")
+	fmt.Fprintln(txt, "blue")
+	txt.Draw(s.win, pixel.IM.Scaled(txt.Orig, 2))
 }
 
-func (s *Settings) roundRect(width, height, rx, ry float64) {
+func (s *Settings) drawRoundRect(width, height, rx, ry float64) {
 	s.imd.Color = pixel.RGB(1, 1, 1)
 
 	vec := pixel.V(width/2, height/2)
@@ -94,7 +104,6 @@ func (s *Settings) roundRect(width, height, rx, ry float64) {
 }
 
 func (s *Settings) Listen(l *life.Life) {
-
 	if s.win.Pressed(pixelgl.MouseButtonLeft) {
 		mousePos := s.win.MousePosition()
 		if math.Abs(mousePos.Y-sizeSlider.Position().Y) < 20 && ((mousePos.X-sizeSlider.Position().X < sizeSlider.Length()) || (sizeSlider.Position().X-mousePos.X > 0)) {
@@ -102,9 +111,28 @@ func (s *Settings) Listen(l *life.Life) {
 			if sizeValue >= sizeSlider.MinValue() && sizeValue <= sizeSlider.MaxValue() {
 				sizeSlider.UpdateValue(sizeValue)
 				l.SetCellSize(int(sizeValue))
-				l.Render()
-				s.OpenSettings()
+				//l.Render()
+				//s.OpenSettings()
 			}
 		}
+		//sizeSlider.AddActionListener(func() {
+		//	if math.Abs(mousePos.Y-sizeSlider.Position().Y) < 20 && ((mousePos.X-sizeSlider.Position().X < sizeSlider.Length()) || (sizeSlider.Position().X-mousePos.X > 0)) {
+		//		var sizeValue = (s.win.MousePosition().X - sizeSlider.Position().X) / sizeSlider.Length() * (sizeSlider.MaxValue() - sizeSlider.MinValue())
+		//		if sizeValue >= sizeSlider.MinValue() && sizeValue <= sizeSlider.MaxValue() {
+		//			sizeSlider.UpdateValue(sizeValue)
+		//			l.SetCellSize(int(sizeValue))
+		//			//l.Render()
+		//			//s.OpenSettings()
+		//		}
+		//	}
+		//})
 	}
+}
+
+func (s *Settings) drawSliders() {
+	sizeSlider.Draw(s.imd)
+	densitySlider.Draw(s.imd)
+	redColorSlider.Draw(s.imd)
+	greenColorSlider.Draw(s.imd)
+	blueColorSlider.Draw(s.imd)
 }

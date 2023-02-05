@@ -5,6 +5,10 @@ import (
 	"github.com/faiface/pixel/imdraw"
 )
 
+type MouseActionListener interface {
+	MouseClicked()
+}
+
 type Slider struct {
 	position        pixel.Vec
 	backgroundColor pixel.RGBA
@@ -67,4 +71,8 @@ func (s *Slider) MaxValue() float64 {
 
 func (s *Slider) Position() pixel.Vec {
 	return s.position
+}
+
+func (s *Slider) AddActionListener(listener MouseActionListener) {
+	listener.MouseClicked()
 }

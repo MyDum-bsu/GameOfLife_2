@@ -9,15 +9,17 @@ import (
 	"time"
 )
 
-var (
-	paused   = false
-	settings = false
-)
-
 const (
 	width    = 1920
 	height   = 1080
 	cellSize = 4
+)
+
+var (
+	aliveColor = pixel.RGB(0, 1, 0)
+	deadColor  = pixel.RGB(0, 0, 0)
+	paused     = false
+	settings   = false
 )
 
 func run() {
@@ -33,22 +35,22 @@ func run() {
 	}
 	win.SetMonitor(pixelgl.PrimaryMonitor())
 
-	aliveColor := pixel.RGB(0, 1, 0)
-	deadColor := pixel.RGB(0, 0, 0)
 	imd := imdraw.New(nil)
 	l := life.NewLife(win, imd, aliveColor, deadColor, cellSize)
 	s := settings2.NewSettings(win, imd, pixel.V(width/2, height/2))
 
 	for !win.Closed() {
-		l.HandleInput()
 		if settings {
-			//s.OpenSettings()
+			s.OpenSettings()
 			s.Listen(l)
-		} else if !paused {
-			l.Render()
-			l.Step()
 		} else {
-			imd.Draw(win)
+			l.HandleInput()
+			if !paused {
+				l.Render()
+				l.Step()
+			} else {
+				imd.Draw(win)
+			}
 		}
 		checkPressedButtons(win, l, s)
 		win.Update()
@@ -60,7 +62,7 @@ func checkPressedButtons(win *pixelgl.Window, l *life.Life, s *settings2.Setting
 	if win.JustPressed(pixelgl.KeyEscape) {
 		settings = !settings
 		paused = !paused
-		s.OpenSettings()
+		//s.OpenSettings()
 	}
 
 	if win.JustPressed(pixelgl.KeySpace) {
