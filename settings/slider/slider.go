@@ -51,10 +51,15 @@ func (s *Slider) Value() float64 {
 	return s.currentValue
 }
 
-func (s *Slider) UpdateValue(value float64) {
+func (s *Slider) UpdateValue(value float64) bool {
 	if value >= s.minVal && value <= s.maxVal {
+		if value == s.currentValue {
+			return false
+		}
 		s.currentValue = value
+		return true
 	}
+	return false
 }
 
 func (s *Slider) Length() float64 {

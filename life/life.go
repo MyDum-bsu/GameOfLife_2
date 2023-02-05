@@ -20,7 +20,7 @@ func NewLife(win *pixelgl.Window, imd *imdraw.IMDraw, aColor, dColor pixel.RGBA,
 	width := int(win.Bounds().W()) / cellSize
 	height := int(win.Bounds().H()) / cellSize
 	u := universe.NewUniverse(width, height)
-	u.Seed()
+	u.Seed(0.25)
 	return &Life{
 		win:        win,
 		imd:        imd,
@@ -79,14 +79,31 @@ func (l *Life) validateMousePosition(x, y int) bool {
 	return x >= 0 && y >= 0 && x < l.u.Width() && y < l.u.Height()
 }
 
-func (l *Life) Seed() {
-	l.u.Seed()
+func (l *Life) Seed(density float64) {
+	l.u.Seed(density)
 }
 
-func (l *Life) SetCellSize(size int) {
+func (l *Life) SetCellSize(size int, density float64) {
 	l.cellSize = size
 	width := int(l.win.Bounds().W()) / size
 	height := int(l.win.Bounds().H()) / size
 	l.u = universe.NewUniverse(width, height)
-	l.u.Seed()
+	l.u.Seed(density)
+}
+
+func (l *Life) SetDensity(value float64) {
+	l.u.Erase()
+	l.u.Seed(value)
+}
+
+func (l *Life) SetRed(value float64) {
+	l.aliveColor.R = value
+}
+
+func (l *Life) SetGreen(value float64) {
+	l.aliveColor.G = value
+}
+
+func (l *Life) SetBlue(value float64) {
+	l.aliveColor.B = value
 }

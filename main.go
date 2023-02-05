@@ -41,8 +41,8 @@ func run() {
 
 	for !win.Closed() {
 		if settings {
-			s.OpenSettings()
 			s.Listen(l)
+			s.OpenSettings()
 		} else {
 			l.HandleInput()
 			if !paused {

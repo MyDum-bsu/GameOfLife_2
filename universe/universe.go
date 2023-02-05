@@ -15,8 +15,9 @@ func NewUniverse(width, height int) *Universe {
 	return &Universe{board: board, w: width, h: height}
 }
 
-func (u *Universe) Seed() {
-	for i := 0; i < (u.h * u.w / 4); i++ {
+func (u *Universe) Seed(density float64) {
+	cellCount := int(float64(u.h*u.w) * density)
+	for i := 0; i < cellCount; i++ {
 		u.board[rand.Intn(u.w)][rand.Intn(u.h)] = true
 	}
 }

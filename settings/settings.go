@@ -15,6 +15,7 @@ import (
 
 var (
 	atlas            = text.NewAtlas(basicfont.Face7x13, text.ASCII)
+	title            *text.Text
 	txt              *text.Text
 	sizeSlider       *slider.Slider
 	densitySlider    *slider.Slider
@@ -30,17 +31,17 @@ type Settings struct {
 }
 
 func NewSettings(win *pixelgl.Window, imd *imdraw.IMDraw, center pixel.Vec) *Settings {
-	baseVec := center.Sub(pixel.V(140, -150))
+	baseVec := center.Sub(pixel.V(160, -150))
 	deltaVec := pixel.V(0, 40)
 	var r float64 = 8
 	var l float64 = 130
 	lineC := pixel.RGB(0, 0, 0)
 	circleC := pixel.RGB(1, 0, 0)
 	sizeSlider = slider.NewSlider(baseVec, r, l, 5, 3, 300, lineC, circleC)
-	densitySlider = slider.NewSlider(baseVec.Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
-	redColorSlider = slider.NewSlider(densitySlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
-	greenColorSlider = slider.NewSlider(redColorSlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
-	blueColorSlider = slider.NewSlider(greenColorSlider.Position().Sub(deltaVec), r, l, 2, 0, 100, lineC, circleC)
+	densitySlider = slider.NewSlider(baseVec.Sub(deltaVec), r, l, 0.25, 0, 1, lineC, circleC)
+	redColorSlider = slider.NewSlider(densitySlider.Position().Sub(deltaVec), r, l, 0, 0, 1, lineC, circleC)
+	greenColorSlider = slider.NewSlider(redColorSlider.Position().Sub(deltaVec), r, l, 1, 0, 1, lineC, circleC)
+	blueColorSlider = slider.NewSlider(greenColorSlider.Position().Sub(deltaVec), r, l, 0, 0, 1, lineC, circleC)
 	return &Settings{
 		win:    win,
 		imd:    imd,
@@ -56,7 +57,11 @@ func (s *Settings) OpenSettings() {
 }
 
 func (s *Settings) drawText() {
-	txt = text.New(pixel.V(s.center.X, s.center.Y+145), atlas)
+	title = text.New(pixel.V(s.center.X-160, s.center.Y+190), atlas)
+	title.Color = colornames.Darkslategray
+	fmt.Fprintln(title, "Settings")
+	txt = text.New(pixel.V(s.center.X+30, s.center.Y+145), atlas)
+
 	txt.Color = colornames.Black
 	txt.LineHeight = 20
 	fmt.Fprintln(txt, "resolution")
@@ -65,6 +70,7 @@ func (s *Settings) drawText() {
 	fmt.Fprintln(txt, "green")
 	fmt.Fprintln(txt, "blue")
 	txt.Draw(s.win, pixel.IM.Scaled(txt.Orig, 2))
+	title.Draw(s.win, pixel.IM.Scaled(title.Orig, 6))
 }
 
 func (s *Settings) drawRoundRect(width, height, rx, ry float64) {
@@ -105,28 +111,35 @@ func (s *Settings) drawRoundRect(width, height, rx, ry float64) {
 
 func (s *Settings) Listen(l *life.Life) {
 	if s.win.Pressed(pixelgl.MouseButtonLeft) {
-		mousePos := s.win.MousePosition()
-		if math.Abs(mousePos.Y-sizeSlider.Position().Y) < 20 && ((mousePos.X-sizeSlider.Position().X < sizeSlider.Length()) || (sizeSlider.Position().X-mousePos.X > 0)) {
-			var sizeValue = (s.win.MousePosition().X - sizeSlider.Position().X) / sizeSlider.Length() * (sizeSlider.MaxValue() - sizeSlider.MinValue())
-			if sizeValue >= sizeSlider.MinValue() && sizeValue <= sizeSlider.MaxValue() {
-				sizeSlider.UpdateValue(sizeValue)
-				l.SetCellSize(int(sizeValue))
-				//l.Render()
-				//s.OpenSettings()
-			}
+		if s.moveSlider(sizeSlider) {
+			l.SetCellSize(int(sizeSlider.Value()), densitySlider.Value())
 		}
-		//sizeSlider.AddActionListener(func() {
-		//	if math.Abs(mousePos.Y-sizeSlider.Position().Y) < 20 && ((mousePos.X-sizeSlider.Position().X < sizeSlider.Length()) || (sizeSlider.Position().X-mousePos.X > 0)) {
-		//		var sizeValue = (s.win.MousePosition().X - sizeSlider.Position().X) / sizeSlider.Length() * (sizeSlider.MaxValue() - sizeSlider.MinValue())
-		//		if sizeValue >= sizeSlider.MinValue() && sizeValue <= sizeSlider.MaxValue() {
-		//			sizeSlider.UpdateValue(sizeValue)
-		//			l.SetCellSize(int(sizeValue))
-		//			//l.Render()
-		//			//s.OpenSettings()
-		//		}
-		//	}
-		//})
+		if s.moveSlider(densitySlider) {
+			l.SetDensity(densitySlider.Value())
+			l.Render()
+		} else {
+			if s.moveSlider(redColorSlider) {
+				l.SetRed(redColorSlider.Value())
+			}
+			if s.moveSlider(greenColorSlider) {
+				l.SetGreen(greenColorSlider.Value())
+			}
+			if s.moveSlider(blueColorSlider) {
+				l.SetBlue(blueColorSlider.Value())
+			}
+			l.Render()
+		}
 	}
+}
+
+func (s *Settings) moveSlider(sl *slider.Slider) bool {
+	mousePos := s.win.MousePosition()
+	if math.Abs(mousePos.Y-sl.Position().Y) < 20 &&
+		((mousePos.X-sl.Position().X < sl.Length()) || (sl.Position().X-mousePos.X > 0)) {
+		var value = (s.win.MousePosition().X - sl.Position().X) / sl.Length() * (sl.MaxValue() - sl.MinValue())
+		return sl.UpdateValue(value)
+	}
+	return false
 }
 
 func (s *Settings) drawSliders() {
